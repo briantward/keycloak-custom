@@ -15,17 +15,18 @@ A place to track my objectives and customization of keycloak
 - geolocation aware and fraud detection
 
 ## RH Atomic Host Environment
-2 nodes with RH-SSO server
-1 node with postgres database
-2 nodes with test application EAP7 / Java EE
-1 node with an IPA server / Red Hat Directory Services
-1 node with MS Windows Server and Active Directory
-1 node with spring boot application
+- 2 nodes with RH-SSO server
+- 1 node with postgres database
+- 2 nodes with test application EAP7 / Java EE
+- 1 node with an IPA server / Red Hat Directory Services
+- 1 node with MS Windows Server and Active Directory
+- 1 node with spring boot application
 
 1 node with jmeter test script running, from a separate subnet
 
 base install rhel 7 server
 
+```
 subscription-manager register
 subscription-manager attach --pool=$POOL_ID
 yum install vim
@@ -37,3 +38,5 @@ firewall-cmd --add-service=http,https
 firewall-cmd --add-port=8080/tcp,8443/tcp
 firewall-cmd --permanent --add-port=8443/tcp
 firewall-cmd --permanent --add-port=8080/tcp
+```
+
