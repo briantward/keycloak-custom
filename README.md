@@ -8,7 +8,7 @@ A place to track my objectives and customization of keycloak
 - Username Policy
 - Custom Password Policy
 - Login form with username and email and password required and validated
-- Minimum password lifetime policy
+- Minimum password lifetime policy, limit by timeframe, limit count by timeframe, different by client?
 - Custom BruteForceProtector
 - Lockout inactive accounts by timeframe
 - 2factor SMS
