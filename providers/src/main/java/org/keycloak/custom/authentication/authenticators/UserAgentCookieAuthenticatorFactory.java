@@ -30,23 +30,28 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @author <a href="mailto:bill@burkecentral.com">Bill Burke</a>
  * @author <a href="mailto:bward@redhat.com">Brian Ward</a>
  * @version $Revision: 1 $
  */
-public class SecretQuestionAuthenticatorFactory implements AuthenticatorFactory, ConfigurableAuthenticatorFactory {
-
-    public static final String PROVIDER_ID = "secret-question-authenticator";
-    private static final SecretQuestionAuthenticator SINGLETON = new SecretQuestionAuthenticator();
+public class UserAgentCookieAuthenticatorFactory implements AuthenticatorFactory, ConfigurableAuthenticatorFactory {
+    public static final String PROVIDER_ID = "user-agent-cookie-authenticator";
+    private static final String USER_AGENT_TEXT = "User Agent Cookie";
+    private static final String USER_AGENT_HELP_TEXT = "Check for a signed user/machine cookie that extends beyond the standard keycloak session cookies.";
+    private static final UserAgentCookieAuthenticator SINGLETON = new UserAgentCookieAuthenticator();
 
     @Override
-    public String getId() {
-        return PROVIDER_ID;
+    public String getDisplayType() {
+        return USER_AGENT_TEXT;
     }
 
     @Override
-    public Authenticator create(KeycloakSession session) {
-        return SINGLETON;
+    public String getReferenceCategory() {
+        return USER_AGENT_TEXT;
+    }
+
+    @Override
+    public boolean isConfigurable() {
+        return true;
     }
 
     private static AuthenticationExecutionModel.Requirement[] REQUIREMENT_CHOICES = {
@@ -54,6 +59,7 @@ public class SecretQuestionAuthenticatorFactory implements AuthenticatorFactory,
             AuthenticationExecutionModel.Requirement.REQUIRED,
             AuthenticationExecutionModel.Requirement.DISABLED
     };
+
     @Override
     public AuthenticationExecutionModel.Requirement[] getRequirementChoices() {
         return REQUIREMENT_CHOICES;
@@ -61,12 +67,12 @@ public class SecretQuestionAuthenticatorFactory implements AuthenticatorFactory,
 
     @Override
     public boolean isUserSetupAllowed() {
-        return true;
+        return false;
     }
 
     @Override
-    public boolean isConfigurable() {
-        return true;
+    public String getHelpText() {
+        return null;
     }
 
     @Override
@@ -82,24 +88,13 @@ public class SecretQuestionAuthenticatorFactory implements AuthenticatorFactory,
         property.setName("cookie.max.age");
         property.setLabel("Cookie Max Age");
         property.setType(ProviderConfigProperty.STRING_TYPE);
-        property.setHelpText("Max age in seconds of the SECRET_QUESTION_COOKIE.");
+        property.setHelpText("Max age in seconds of the User Agent Cookie.");
         configProperties.add(property);
     }
 
-
     @Override
-    public String getHelpText() {
-        return "A secret question that a user has to answer. i.e. What is your mother's maiden name.";
-    }
-
-    @Override
-    public String getDisplayType() {
-        return "Secret Question";
-    }
-
-    @Override
-    public String getReferenceCategory() {
-        return "Secret Question";
+    public Authenticator create(KeycloakSession session) {
+        return SINGLETON;
     }
 
     @Override
@@ -117,5 +112,8 @@ public class SecretQuestionAuthenticatorFactory implements AuthenticatorFactory,
 
     }
 
-
+    @Override
+    public String getId() {
+        return PROVIDER_ID;
+    }
 }

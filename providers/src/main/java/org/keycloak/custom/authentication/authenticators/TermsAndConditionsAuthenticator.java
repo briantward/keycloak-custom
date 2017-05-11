@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Red Hat, Inc. and/or its affiliates
+ * Copyright 2017 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,17 +19,44 @@ package org.keycloak.custom.authentication.authenticators;
 
 import org.keycloak.authentication.AuthenticationFlowContext;
 import org.keycloak.authentication.Authenticator;
-import org.keycloak.models.KeycloakSession;
-import org.keycloak.models.RealmModel;
-import org.keycloak.models.UserModel;
+import org.keycloak.models.*;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author <a href="mailto:bward@redhat.com">Brian Ward</a>
  * @version $Revision: 1 $
  */
 public class TermsAndConditionsAuthenticator implements Authenticator {
+
     @Override
     public void authenticate(AuthenticationFlowContext context) {
+        Set<Integer> tacIds = new HashSet<>();
+
+        String accceptanceTimestampString = context.getUser().getFirstAttribute("terms_and_conditions");
+
+        Long acceptanceTimestamp = Long.getLong("");
+
+        RealmModel realm = context.getRealm();
+        String realmTacIdString = realm.getAttribute("REALM_TAC");
+        if (realmTacIdString != null) {
+            Integer realmTacId = new Integer(realmTacIdString);
+            tacIds.add(realmTacId);
+        }
+
+        ClientModel client = context.getClientSession().getClient();
+        String clientTacIdString = client.getAttribute("CLIENT_TAC");
+        if (clientTacIdString != null) {
+            Integer clientTacId = new Integer(clientTacIdString);
+            tacIds.add(clientTacId);
+        }
+
+
+        // TAC by Roles not possible this way since no attributes per role
+        // Set<RoleModel> userRoles = context.getUser().getRoleMappings();
+
+
 
     }
 

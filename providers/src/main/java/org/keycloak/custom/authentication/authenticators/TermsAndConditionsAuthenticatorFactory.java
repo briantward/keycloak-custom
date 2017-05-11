@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Red Hat, Inc. and/or its affiliates
+ * Copyright 2017 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,6 +26,7 @@ import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.KeycloakSessionFactory;
 import org.keycloak.provider.ProviderConfigProperty;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -33,24 +34,33 @@ import java.util.List;
  * @version $Revision: 1 $
  */
 public class TermsAndConditionsAuthenticatorFactory implements AuthenticatorFactory, ConfigurableAuthenticatorFactory {
+    public static final String PROVIDER_ID = "terms-and-conditions-authenticator";
+    private static final String TAC_TEXT = "Terms and Conditions Acceptance Check";
+    private static final String TAC_HELP_TEXT = "Check for that a user has agreed to terms and conditions.";
+    private static final TermsAndConditionsAuthenticator SINGLETON = new TermsAndConditionsAuthenticator();
+
     @Override
     public String getDisplayType() {
-        return null;
+        return TAC_TEXT;
     }
 
     @Override
     public String getReferenceCategory() {
-        return null;
+        return TAC_TEXT;
     }
 
     @Override
     public boolean isConfigurable() {
-        return false;
+        return true;
     }
 
+    private static AuthenticationExecutionModel.Requirement[] REQUIREMENT_CHOICES = {
+            AuthenticationExecutionModel.Requirement.REQUIRED,
+            AuthenticationExecutionModel.Requirement.DISABLED
+    };
     @Override
     public AuthenticationExecutionModel.Requirement[] getRequirementChoices() {
-        return new AuthenticationExecutionModel.Requirement[0];
+        return REQUIREMENT_CHOICES;
     }
 
     @Override
@@ -60,17 +70,36 @@ public class TermsAndConditionsAuthenticatorFactory implements AuthenticatorFact
 
     @Override
     public String getHelpText() {
-        return null;
+        return TAC_HELP_TEXT;
     }
 
     @Override
     public List<ProviderConfigProperty> getConfigProperties() {
-        return null;
+        return configProperties;
+    }
+
+    private static final List<ProviderConfigProperty> configProperties = new ArrayList<ProviderConfigProperty>();
+
+    static {
+        ProviderConfigProperty property;
+        property = new ProviderConfigProperty();
+        property.setName("client.name");
+        property.setLabel("Client Name");
+        property.setType(ProviderConfigProperty.STRING_TYPE);
+        property.setHelpText("Client Name");
+        configProperties.add(property);
+
+        property = new ProviderConfigProperty();
+        property.setName("client.tac.id");
+        property.setLabel("Client Terms and Conditions Id");
+        property.setType(ProviderConfigProperty.STRING_TYPE);
+        property.setHelpText("The terms and conditions id that matches the freemarker template name \"terms-CLIENTID.ftl\"");
+        configProperties.add(property);
     }
 
     @Override
     public Authenticator create(KeycloakSession session) {
-        return null;
+        return SINGLETON;
     }
 
     @Override
@@ -90,6 +119,6 @@ public class TermsAndConditionsAuthenticatorFactory implements AuthenticatorFact
 
     @Override
     public String getId() {
-        return null;
+        return PROVIDER_ID;
     }
 }

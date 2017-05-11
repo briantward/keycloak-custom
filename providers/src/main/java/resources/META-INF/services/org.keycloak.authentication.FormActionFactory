@@ -15,6 +15,4 @@
 # limitations under the License.
 #
 
-org.keycloak.custom.authentication.authenticators.SecretQuestionAuthenticatorFactory
-org.keycloak.custom.authentication.authenticators.TermsAndConditionsAuthenticatorFactory
-org.keycloak.custom.authentication.authenticators.UserAgentCookieAuthenticatorFactory
+org.keycloak.custom.authentication.forms.SecretQuestionFormActionFactory

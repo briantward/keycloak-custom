@@ -22,6 +22,7 @@ A place to track my objectives and customization of keycloak
 - 1 node with MS Windows Server and Active Directory
 - 1 node with spring boot application
 
+
 1 node with jmeter test script running, from a separate subnet
 
 base install rhel 7 server
@@ -38,5 +39,12 @@ firewall-cmd --add-service=http,https
 firewall-cmd --add-port=8080/tcp,8443/tcp
 firewall-cmd --permanent --add-port=8443/tcp
 firewall-cmd --permanent --add-port=8080/tcp
+
 ```
+
+
+research API calls and create custom REST endpoints for more features
+- update password
+
+research backchannel logout in EAP adapter
 
