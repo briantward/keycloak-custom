@@ -29,6 +29,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author <a href="mailto:bill@burkecentral.com">Bill Burke</a>
@@ -37,7 +38,7 @@ import java.util.Set;
  */
 public class SecretQuestionCredentialProvider implements CredentialProvider, CredentialInputValidator, CredentialInputUpdater, OnUserCache {
     public static final String SECRET_QUESTION = "SECRET_QUESTION";
-    public static final String CACHE_KEY = SecretQuestionCredentialProvider.class.getName() + "." + SECRET_QUESTION;
+    public static final String CACHE_KEY_BASE = SecretQuestionCredentialProvider.class.getName() + "." + SECRET_QUESTION;
 
     protected KeycloakSession session;
 
@@ -45,19 +46,29 @@ public class SecretQuestionCredentialProvider implements CredentialProvider, Cre
         this.session = session;
     }
 
-    public CredentialModel getSecret(RealmModel realm, UserModel user) {
+    public CredentialModel getSecret(RealmModel realm, UserModel user, String questionId) {
         CredentialModel secret = null;
         if (user instanceof CachedUserModel) {
             CachedUserModel cached = (CachedUserModel)user;
-            secret = (CredentialModel)cached.getCachedWith().get(CACHE_KEY);
+            secret = (CredentialModel)cached.getCachedWith().get(CACHE_KEY_BASE + questionId);
 
         } else {
-            List<CredentialModel> creds = session.userCredentialManager().getStoredCredentialsByType(realm, user, SECRET_QUESTION);
-            if (!creds.isEmpty()) secret = creds.get(0);
+            secret = getSecretQuestionCredential(realm, user, questionId);
         }
         return secret;
     }
 
+    private CredentialModel getSecretQuestionCredential(RealmModel realm, UserModel user, String questionId){
+        List<CredentialModel> creds = session.userCredentialManager().getStoredCredentialsByType(realm, user, SECRET_QUESTION);
+        if (!creds.isEmpty()){
+            List<CredentialModel> filteredCreds = creds.stream().filter(cred -> cred.getDevice().equals(questionId)).collect(Collectors.toList());
+            if (filteredCreds.size()==1) {
+                return filteredCreds.get(0);
+            }
+        }
+        // TODO make nice exception
+        throw new RuntimeException("Invalid number of credentials found!");
+    }
 
     @Override
     public boolean updateCredential(RealmModel realm, UserModel user, CredentialInput input) {
@@ -70,10 +81,23 @@ public class SecretQuestionCredentialProvider implements CredentialProvider, Cre
             secret.setType(SECRET_QUESTION);
             secret.setValue(credInput.getValue());
             secret.setCreatedDate(Time.currentTimeMillis());
+            // to store multiple secret questions, the question is stored as device
+            secret.setDevice(credInput.getDevice());
             session.userCredentialManager().createCredential(realm ,user, secret);
         } else {
-            creds.get(0).setValue(credInput.getValue());
-            session.userCredentialManager().updateCredential(realm, user, creds.get(0));
+            // find the answer to the correct security question
+            // TODO review for NPE
+            List<CredentialModel> filteredCreds = creds.stream()
+                    .filter(credentialModel -> credentialModel.getDevice().equals(credInput.getDevice()))
+                    .collect(Collectors.toList());
+            if (filteredCreds.size()==1){
+                filteredCreds.get(0).setValue(credInput.getValue());
+                session.userCredentialManager().updateCredential(realm, user, creds.get(0));
+            }
+            else {
+                // TODO make nice exception
+                throw new RuntimeException("Invalid number of credentials found!");
+            }
         }
         session.userCache().evict(realm, user);
         return true;
@@ -107,7 +131,7 @@ public class SecretQuestionCredentialProvider implements CredentialProvider, Cre
     @Override
     public boolean isConfiguredFor(RealmModel realm, UserModel user, String credentialType) {
         if (!SECRET_QUESTION.equals(credentialType)) return false;
-        return getSecret(realm, user) != null;
+        return !session.userCredentialManager().getStoredCredentialsByType(realm, user, SECRET_QUESTION).isEmpty();
     }
 
     @Override
@@ -115,7 +139,7 @@ public class SecretQuestionCredentialProvider implements CredentialProvider, Cre
         if (!SECRET_QUESTION.equals(input.getType())) return false;
         if (!(input instanceof UserCredentialModel)) return false;
 
-        String secret = getSecret(realm, user).getValue();
+        String secret = getSecret(realm, user, ((UserCredentialModel) input).getDevice()).getValue();
 
         return secret != null && ((UserCredentialModel)input).getValue().equals(secret);
     }
@@ -123,6 +147,10 @@ public class SecretQuestionCredentialProvider implements CredentialProvider, Cre
     @Override
     public void onCache(RealmModel realm, CachedUserModel user, UserModel delegate) {
         List<CredentialModel> creds = session.userCredentialManager().getStoredCredentialsByType(realm, user, SECRET_QUESTION);
-        if (!creds.isEmpty()) user.getCachedWith().put(CACHE_KEY, creds.get(0));
+        // go ahead and cache all the questions
+        // again, cred.device is storing questionId
+        if (!creds.isEmpty()) {
+            creds.stream().forEach(cred -> user.getCachedWith().put(CACHE_KEY_BASE + cred.getDevice(), cred));
+        }
     }
 }
