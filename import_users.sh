@@ -38,7 +38,7 @@ export TOKEN=$(curl -v \
   -d "username=${USERNAME}" \
   --data-urlencode "password=${PASSWORD}" \
   -d "grant_type=password" \
-  "${HOST}/auth/realms/${REALM}/protocol/openid-connect/token" \
+  "${HOST}/auth/realms/master/protocol/openid-connect/token" \
   | jq -r '.access_token')
 
 # for each User call the curl create user endpoint
