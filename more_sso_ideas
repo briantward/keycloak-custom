@@ -1,0 +1,32 @@
+secret questions
+- message_en stores the questions?
+- create a custom JPA object ?
+- create a configuration in required action or authenticator -- they both need this
+- cookie is a machine authenticator itself
+
+if we want to add a secret question to the group, easy
+if we want to remove a secret question, remove it from all users and ensure that each user has a minumim number of questions
+should we manage secret questions in the database or in the freemarker template?
+database would be best, id to question
+answer to id
+credential model not sufficient to store multiple of same type
+
+configurable
+store X number of questions and present Y number at challenge where Y <= X
+each failure will revoke the previous list and choose randomly from the remainder
+or
+repeat same question Z number of times before moving to next one
+
+brute force detector
+-number of concurrent lockouts within a given period
+
+separating machine cookie from secret questions allows it to be reused and configured 
+- use for OTP as well, or require both OTP and Secret Question
+- use service for geolocation
+- requires a the password form to set the cookie, separate set of actions from the authenticator class
+- password form could have a check box to configure if cookie would be set or not 
+
+terms and conditions
+- by realm or by client or by role
+- should we really manage this? or should it be application specific
+- to keep registration and login flows consistent yes
